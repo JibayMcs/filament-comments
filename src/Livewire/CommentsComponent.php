@@ -2,10 +2,12 @@
 
 namespace Parallax\FilamentComments\Livewire;
 
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
+use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +22,12 @@ class CommentsComponent extends Component implements HasForms
 
     public Model $record;
 
+    public $guard = 'web';
+
+    public $notifyFrom = null;
+
+    public $notifyTo = null;
+
     public function mount(): void
     {
         $this->form->fill();
@@ -27,7 +35,8 @@ class CommentsComponent extends Component implements HasForms
 
     public function form(Form $form): Form
     {
-        if (!auth()->user()->can('create', config('filament-comments.comment_model'))) {
+
+        if (!auth()->guard($this->guard)->user()->can('create', config('filament-comments.comment_model'))) {
             return $form;
         }
 
@@ -55,7 +64,7 @@ class CommentsComponent extends Component implements HasForms
 
     public function create(): void
     {
-        if (!auth()->user()->can('create', config('filament-comments.comment_model'))) {
+        if (!auth()->guard($this->guard)->user()->can('create', config('filament-comments.comment_model'))) {
             return;
         }
 
@@ -66,7 +75,8 @@ class CommentsComponent extends Component implements HasForms
         $this->record->filamentComments()->create([
             'subject_type' => $this->record->getMorphClass(),
             'comment' => $data['comment'],
-            'user_id' => auth()->id(),
+            'commentator_id' => auth()->guard($this->guard)->user()->id,
+            'commentator_type' => auth()->guard($this->guard)->user()::class,
         ]);
 
         Notification::make()
@@ -85,7 +95,7 @@ class CommentsComponent extends Component implements HasForms
             return;
         }
 
-        if (!auth()->user()->can('delete', $comment)) {
+        if (!auth()->guard($this->guard)->user()->can('delete', $comment)) {
             return;
         }
 
@@ -99,8 +109,9 @@ class CommentsComponent extends Component implements HasForms
 
     public function render(): View
     {
-        $comments = $this->record->filamentComments()->with(['user'])->latest()->get();
+        $comments = $this->record->filamentComments()->with(['commentator'])->latest()->get();
 
         return view('filament-comments::comments', ['comments' => $comments]);
     }
+
 }

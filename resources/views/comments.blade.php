@@ -1,8 +1,8 @@
 <div class="flex flex-col h-full space-y-4">
-    @if (auth()->user()->can('create', \Parallax\FilamentComments\Models\FilamentComment::class))
+    @if (auth()->guard($this->guard)->user()->can('create', \Parallax\FilamentComments\Models\FilamentComment::class))
         <div class="space-y-4">
             {{ $this->form }}
-            
+
             <x-filament::button
                 wire:click="create"
                 color="primary"
@@ -18,14 +18,14 @@
                 <div class="fi-in-repeatable-item block rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10">
                     <div class="flex gap-x-3">
                         @if (config('filament-comments.display_avatars'))
-                            <x-filament-panels::avatar.user size="md" :user="$comment->user" />
+                            <x-filament-panels::avatar.user size="md" :user="$comment->commentator" />
                         @endif
 
                         <div class="flex-grow space-y-2 pt-[6px]">
                             <div class="flex gap-x-2 items-center justify-between">
                                 <div class="flex gap-x-2 items-center">
                                     <div class="text-sm font-medium text-gray-950 dark:text-white">
-                                        {{ $comment->user[config('filament-comments.user_name_attribute')] }}
+                                        {{ $comment->commentator[config('filament-comments.user_name_attribute')] }}
                                     </div>
 
                                     <div class="text-xs font-medium text-gray-400 dark:text-gray-500">
@@ -33,13 +33,13 @@
                                     </div>
                                 </div>
 
-                                @if (auth()->user()->can('delete', $comment))
+                                @if (auth()->guard($this->guard)->user()->can('delete', $comment))
                                     <div class="flex-shrink-0">
                                         <x-filament::icon-button
                                             wire:click="delete({{ $comment->id }})"
                                             icon="{{ config('filament-comments.icons.delete') }}"
                                             color="danger"
-                                            tooltip="Delete comment"
+                                            tooltip="{{ __('filament-comments::filament-comments.comments.delete') }}"
                                         />
                                     </div>
                                 @endif
@@ -63,7 +63,7 @@
                 icon="{{ config('filament-comments.icons.empty') }}"
                 class="h-12 w-12 text-gray-400 dark:text-gray-500"
             />
-            
+
             <div class="text-sm text-gray-400 dark:text-gray-500">
                 {{ __('filament-comments::filament-comments.comments.empty') }}
             </div>

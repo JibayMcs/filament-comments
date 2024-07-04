@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create(config('filament-comments.table_name', 'filament_comments'), function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('commentator_id');
+            $table->string('commentator_type');
             $table->string('subject_type');
             $table->unsignedBigInteger('subject_id');
             $table->longText('comment');
