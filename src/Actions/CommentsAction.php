@@ -9,9 +9,11 @@ use Parallax\FilamentComments\Models\FilamentComment;
 
 class CommentsAction extends Action
 {
-    public $notifyFrom = null;
+    public $guard = 'web';
 
-    public $notifyTo = null;
+    public $notifyFrom;
+
+    public $notifyTo;
 
     public static function getDefaultName(): ?string
     {
@@ -28,16 +30,32 @@ class CommentsAction extends Action
             ->color('gray')
             ->badge($this->record->filamentComments()->count())
             ->slideOver()
-            ->modalContentFooter(fn ($livewire): View => view('filament-comments::component')
-                ->with('record', $this->record)
-                ->with('notifyFrom', $this->getNotifyFrom())
-                ->with('notifyTo', $this->getNotifyTo())
+            ->modalContentFooter(fn($livewire): View => view('filament-comments::component',
+                [
+                    'record' => $this->record,
+                    'guard' => $this->getGuard(),
+                    'notifyFrom' => $this->getNotifyFrom(),
+                    'notifyTo' => $this->getNotifyTo(),
+                ]
+            )
             )
             ->modalHeading(__('filament-comments::filament-comments.modal.heading'))
             ->modalWidth(MaxWidth::Medium)
             ->modalSubmitAction(false)
             ->modalCancelAction(false)
-            ->visible(fn (): bool => auth()->user()->can('viewAny', config('filament-comments.comment_model')));
+            ->visible(fn(): bool => auth()->user()->can('viewAny', config('filament-comments.comment_model')));
+    }
+
+    public function guard(string $guard): static
+    {
+        $this->guard = $guard;
+
+        return $this;
+    }
+
+    public function getGuard()
+    {
+        return $this->guard;
     }
 
     public function notifyFrom($notifyFrom): static
